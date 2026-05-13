@@ -894,7 +894,7 @@ async function loadFromSupabase() {
       nextProspectId = Math.max(...prospects.map(p => p.id)) + 1;
     }
     if (dbTasks && dbTasks.length > 0) {
-      tasks = dbTasks.map(t => ({...t, updates: t.updates || []}));
+      tasks = dbTasks.map(t => ({...t, clientId: t.client_id ?? t.clientId ?? null, updates: t.updates || []}));
       nextTaskId = Math.max(...tasks.map(t => t.id)) + 1;
     }
     if (dbNotes && dbNotes.length > 0) {
