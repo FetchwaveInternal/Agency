@@ -105,6 +105,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 .s-sub{font-size:11px;color:var(--muted)}
 .s-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
 .full{grid-column:1/-1}
 
 /* PILLS */
@@ -351,6 +352,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 
   /* Two-col grids stack */
   .g2{grid-template-columns:1fr;gap:10px}
+  .g3{grid-template-columns:1fr;gap:10px}
 
   /* Clients */
   .cl-page{padding:14px 16px}
@@ -525,6 +527,9 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
       <button class="mob-sheet-item" onclick="navigate('reminders');closeMoreSheet()">
         <span class="mob-sheet-ic">◎</span>Reminders
       </button>
+      <button class="mob-sheet-item" onclick="navigate('reporting');closeMoreSheet()">
+        <span class="mob-sheet-ic">⊟</span>Reports
+      </button>
     </div>
     <button class="mob-sheet-close" onclick="closeMoreSheet()">Close</button>
   </div>
@@ -542,6 +547,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
     <button class="ni" data-pg="clients"><span class="ni-ic">◈</span>Clients<span class="ni-badge" id="badge-clients">9</span></button>
     <button class="ni" data-pg="pipeline"><span class="ni-ic">◐</span>Pipeline<span class="ni-badge" id="badge-pipe">4</span></button>
     <button class="ni" data-pg="tasks"><span class="ni-ic">✓</span>Tasks<span class="ni-badge" id="badge-tasks">0</span></button>
+    <button class="ni" data-pg="reporting"><span class="ni-ic">⊟</span>Reports</button>
     <button class="ni" data-pg="calendar"><span class="ni-ic">◷</span>Calendar</button>
     <div class="sb-lbl">Tools</div>
     <button class="ni" data-pg="spend"><span class="ni-ic">↑</span>Spend &amp; Slips<span class="ni-badge grey" id="badge-spend"></span></button>
@@ -567,9 +573,10 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
   <div class="page on" id="page-dashboard">
     <div class="pad">
       <div class="stats" id="dash-stats"></div>
-      <div class="g2">
+      <div class="g3">
         <div class="card"><div class="ch"><div class="ct"><div class="dot" style="background:#0F78D2"></div>Connor's tasks</div><button class="ca" data-pg="tasks">View all →</button></div><div id="dash-connor"></div></div>
         <div class="card"><div class="ch"><div class="ct"><div class="dot" style="background:#6D28D9"></div>Matt's tasks</div><button class="ca" data-pg="tasks">View all →</button></div><div id="dash-matt"></div></div>
+        <div class="card"><div class="ch"><div class="ct"><div class="dot" style="background:#FF3C1E"></div>Chantal's tasks</div><button class="ca" data-pg="tasks">View all →</button></div><div id="dash-chantal"></div></div>
         <div class="card full"><div class="ch"><div class="ct"><div class="dot" style="background:#16A34A"></div>Revenue overview</div></div><div id="dash-revenue" style="padding:14px 16px"></div></div>
       </div>
     </div>
@@ -605,6 +612,12 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 
   <!-- TASKS -->
   <div class="page" id="page-tasks">
+    <div style="padding:10px 22px;display:flex;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border);background:#fff;flex-wrap:wrap">
+      <button class="sdf-btn on" onclick="setTaskFilter('all',this)">All</button>
+      <button class="sdf-btn" onclick="setTaskFilter('Connor',this)">Connor</button>
+      <button class="sdf-btn" onclick="setTaskFilter('Matt',this)">Matt</button>
+      <button class="sdf-btn" onclick="setTaskFilter('Chantal',this)">Chantal</button>
+    </div>
     <!-- Mobile col tabs for kanban -->
     <div class="mob-col-tabs" id="task-col-tabs">
       <div class="mob-col-tabs-inner">
@@ -614,6 +627,27 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
       </div>
     </div>
     <div class="kanban" id="kanban"></div>
+  </div>
+
+  <!-- REPORTING -->
+  <div class="page" id="page-reporting">
+    <div class="pad">
+      <div class="stats" id="rep-stats"></div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="card">
+          <div class="ch"><div class="ct"><div class="dot" style="background:var(--green)"></div>Completed tasks</div></div>
+          <div id="rep-completed"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct"><div class="dot" style="background:var(--blue)"></div>Tasks by person</div></div>
+          <div id="rep-by-person" style="padding:14px 16px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct"><div class="dot" style="background:var(--purple)"></div>Tasks by client</div></div>
+        <div id="rep-by-client" style="padding:14px 16px"></div>
+      </div>
+    </div>
   </div>
 
   <!-- CALENDAR -->
@@ -894,7 +928,7 @@ async function loadFromSupabase() {
       nextProspectId = Math.max(...prospects.map(p => p.id)) + 1;
     }
     if (dbTasks && dbTasks.length > 0) {
-      tasks = dbTasks.map(t => ({...t, clientId: t.client_id ?? t.clientId ?? null, updates: t.updates || []}));
+      tasks = dbTasks.map(t => ({...t, clientId: t.client_id ?? t.clientId ?? null, updates: t.updates || [], dateCreated: t.date_created || (t.created_at ? t.created_at.split('T')[0] : null)}));
       nextTaskId = Math.max(...tasks.map(t => t.id)) + 1;
     }
     if (dbNotes && dbNotes.length > 0) {
@@ -967,19 +1001,40 @@ const avXs = a => {const u=USERS[a]; return u?`<div class="av-xs" style="backgro
 const clientName = t => { if(!t.clientId) return ''; const c=clients.find(c=>c.id===t.clientId); return c?c.name:''; }
 const stageCSS = s => ({active:'st-active',onboard:'st-onboard',invoice:'st-invoice',free:'st-free',lead:'st-lead',pitch:'st-pitch',proposal:'st-proposal',closing:'st-closing'}[s]||'st-lead');
 const stageLbl = s => ({active:'Active',onboard:'Onboarding',invoice:'Invoicing',free:'Free',lead:'New lead',pitch:'Pitch',proposal:'Proposal',closing:'Closing'}[s]||s);
-function duePill(d){ if(d==='overdue')return'<span class="pill p-ov">Overdue</span>'; if(d==='Today'||d==='today')return'<span class="pill p-tod">Today</span>'; if(d==='done')return'<span class="pill p-done">Done</span>'; return`<span class="pill p-med">${d}</span>`; }
+function formatDue(d){
+  if(!d||d==='done') return d||'';
+  if(d==='overdue') return 'overdue';
+  if(/^\d{4}-\d{2}-\d{2}/.test(d)){
+    const parsed=new Date(d); parsed.setHours(0,0,0,0);
+    const today=new Date(); today.setHours(0,0,0,0);
+    const tomorrow=new Date(today); tomorrow.setDate(today.getDate()+1);
+    if(parsed<today) return 'overdue';
+    if(parsed.getTime()===today.getTime()) return 'Today';
+    if(parsed.getTime()===tomorrow.getTime()) return 'Tomorrow';
+    return parsed.toLocaleDateString('en-ZA',{day:'numeric',month:'short'});
+  }
+  return d;
+}
+function duePill(d){
+  const f=formatDue(d);
+  if(f==='overdue') return '<span class="pill p-ov">Overdue</span>';
+  if(f==='Today'||f==='today') return '<span class="pill p-tod">Today</span>';
+  if(f==='done') return '<span class="pill p-done">Done</span>';
+  if(!f) return '';
+  return `<span class="pill p-med">${f}</span>`;
+}
 function priPill(p){ return p==='High'?'<span class="pill p-high">High</span>':p==='Low'?'<span class="pill p-low">Low</span>':'<span class="pill p-med">Med</span>'; }
 
 // ═══════════════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-const PG_TITLES={dashboard:'Dashboard',clients:'Clients',pipeline:'Pipeline',tasks:'Tasks',calendar:'Calendar',spend:'Spend & Slips',notes:'Meeting Notes',reminders:'Reminders',whatsapp:'WhatsApp Bot',supabase:'Supabase Setup'};
+const PG_TITLES={dashboard:'Dashboard',clients:'Clients',pipeline:'Pipeline',tasks:'Tasks',reporting:'Reports',calendar:'Calendar',spend:'Spend & Slips',notes:'Meeting Notes',reminders:'Reminders',whatsapp:'WhatsApp Bot',supabase:'Supabase Setup'};
 const PG_BTNS={
   dashboard:'',
   clients:`<button class="btn btn-ghost" onclick="openModal('client')">+ Add client</button>`,
   pipeline:`<button class="btn btn-ghost" onclick="openModal('prospect')">+ Add prospect</button>`,
   tasks:`<button class="btn btn-blue" onclick="openModal('task')">+ New task</button>`,
-  calendar:'',spend:'',
+  reporting:'',calendar:'',spend:'',
   notes:`<button class="btn btn-blue" onclick="openModal('note')">+ New note</button>`,
   reminders:'',whatsapp:'',supabase:'',
 };
@@ -1081,6 +1136,7 @@ function renderTaskDetail(t) {
           <div class="td-meta-row"><span class="td-meta-label">Priority</span><select class="td-meta-select" id="td-priority">${priOptions}</select></div>
           <div class="td-meta-row"><span class="td-meta-label">Client</span><select class="td-meta-select" id="td-client-sel" style="max-width:140px">${clientOptions}</select></div>
           <div class="td-meta-row"><span class="td-meta-label">Due date</span><input type="date" class="td-meta-input" id="td-due-date" value="${t.due&&t.due.match(/^\d{4}/)?t.due:''}"></div>
+          <div class="td-meta-row"><span class="td-meta-label">Created</span><span style="font-size:12px;color:var(--muted)">${t.dateCreated?new Date(t.dateCreated).toLocaleDateString('en-ZA',{day:'numeric',month:'short',year:'numeric'}):'—'}</span></div>
         </div>
         <div class="td-section-label" style="margin-top:14px">Quick move</div>
         <div style="display:flex;flex-direction:column;gap:6px">
@@ -1108,7 +1164,7 @@ function saveTaskDetail(taskId) {
   t.assign = assign||t.assign;
   t.priority = priority||t.priority;
   t.clientId = clientId;
-  if(dueRaw) t.due = new Date(dueRaw).toLocaleDateString('en-ZA',{day:'numeric',month:'short'});
+  if(dueRaw) t.due = dueRaw;
   sbUpdateTask(t);
   toast('Task saved ✓', 'success');
   renderTaskDetail(t);
@@ -1150,13 +1206,13 @@ function renderDashboard(){
   const mrr=clients.filter(c=>c.rev>0).reduce((s,c)=>s+c.rev,0);
   const pipe=prospects.reduce((s,p)=>s+p.rev,0);
   const open=tasks.filter(t=>t.col!=='done').length;
-  const ov=tasks.filter(t=>t.due==='overdue').length;
+  const ov=tasks.filter(t=>formatDue(t.due)==='overdue').length;
   document.getElementById('dash-stats').innerHTML=`
     <div class="stat"><div class="s-lbl">Monthly MRR</div><div class="s-val" style="color:var(--green)">R${mrr.toLocaleString('en-ZA')}</div><div class="s-sub">${clients.filter(c=>c.rev>0).length} paying clients</div><div class="s-bar" style="background:var(--green)"></div></div>
     <div class="stat"><div class="s-lbl">Pipeline value</div><div class="s-val" style="color:var(--blue)">R${pipe.toLocaleString('en-ZA')}</div><div class="s-sub">${prospects.length} prospects</div><div class="s-bar" style="background:var(--blue)"></div></div>
     <div class="stat"><div class="s-lbl">Open tasks</div><div class="s-val" style="color:var(--orange)">${open}</div><div class="s-sub">${ov} overdue</div><div class="s-bar" style="background:var(--orange)"></div></div>
     <div class="stat"><div class="s-lbl">Potential MRR</div><div class="s-val" style="color:var(--purple)">R${(mrr+pipe).toLocaleString('en-ZA')}</div><div class="s-sub">If all pipeline closes</div><div class="s-bar" style="background:var(--purple)"></div></div>`;
-  ['Connor','Matt'].forEach(who=>{
+  ['Connor','Matt','Chantal'].forEach(who=>{
     const el=document.getElementById('dash-'+who.toLowerCase());
     const mine=tasks.filter(t=>t.assign===who&&t.col!=='done').slice(0,4);
     el.innerHTML=mine.length?mine.map(t=>`
@@ -1359,10 +1415,17 @@ function openEditProspect(id){
 // ═══════════════════════════════════════════════════════════════════
 // TASKS KANBAN
 // ═══════════════════════════════════════════════════════════════════
+let taskFilter = 'all';
+function setTaskFilter(who, btn){
+  taskFilter = who;
+  document.querySelectorAll('#page-tasks .sdf-btn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  renderKanban();
+}
 function renderKanban(){
   const cols=[{key:'todo',label:'To do',dot:'var(--subtle)'},{key:'progress',label:'In progress',dot:'var(--blue)'},{key:'done',label:'Done',dot:'var(--green)'}];
   document.getElementById('kanban').innerHTML=cols.map(col=>{
-    const cards=tasks.filter(t=>t.col===col.key);
+    const cards=tasks.filter(t=>t.col===col.key&&(taskFilter==='all'||t.assign===taskFilter));
     return `<div class="kb-col" data-col="${col.key}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dropTask(event,'${col.key}')">
       <div class="kb-head"><div class="dot" style="background:${col.dot}"></div><div class="kb-title">${col.label}</div><span class="kb-cnt">${cards.length}</span><button class="kb-plus" onclick="openModal('task')">+</button></div>
       <div class="kb-cards">${cards.map(t=>{
@@ -1371,6 +1434,8 @@ function renderKanban(){
         return `<div class="kb-card" draggable="true" ondragstart="dragTStart(event,${t.id})" ondragend="this.classList.remove('dragging')" onclick="openTaskDetail(${t.id})" style="${t.col==='done'?'opacity:.5':''}">
           <div class="kc-title" style="${t.col==='done'?'text-decoration:line-through;color:var(--subtle)':''}">${t.title}</div>
           <div class="kc-meta"><span class="kc-cl">${clientName(t)}</span>${duePill(t.due)}${avXs(t.assign)}</div>
+          ${t.dateCreated?`<div style="font-size:10px;color:var(--subtle);margin-top:3px">Created ${new Date(t.dateCreated).toLocaleDateString('en-ZA',{day:'numeric',month:'short'})}</div>`:''}
+
           <div class="kc-mv" onclick="event.stopPropagation()">
             ${prev?`<button class="mv-btn" onclick="moveTask(${t.id},'${prev}')">← ${prev==='todo'?'To do':'In progress'}</button>`:''}
             ${next?`<button class="mv-btn" onclick="moveTask(${t.id},'${next}')">${next==='done'?'Done ✓':'In progress'} →</button>`:''}
@@ -1649,13 +1714,13 @@ function submitTask(){
   const due=document.getElementById('t-due').value;
   const cid=parseInt(document.getElementById('t-client').value)||null;
   const desc=document.getElementById('t-desc').value.trim();
-  const duelbl=due?new Date(due).toLocaleDateString('en-ZA',{day:'numeric',month:'short'}):'No date';
   const eid=parseInt(document.getElementById('t-edit-id').value)||null;
+  const today=new Date().toISOString().split('T')[0];
   if(eid){
     const t=tasks.find(t=>t.id===eid);
-    if(t){Object.assign(t,{title,assign:document.getElementById('t-assign').value,priority:document.getElementById('t-priority').value,clientId:cid,due:duelbl,description:desc});sbUpdateTask(t);}
+    if(t){Object.assign(t,{title,assign:document.getElementById('t-assign').value,priority:document.getElementById('t-priority').value,clientId:cid,due:due||t.due,description:desc});sbUpdateTask(t);}
   } else {
-    const nt={id:nextTaskId++,title,assign:document.getElementById('t-assign').value,priority:document.getElementById('t-priority').value,clientId:cid,col:'todo',due:duelbl,description:desc,updates:[]};
+    const nt={id:nextTaskId++,title,assign:document.getElementById('t-assign').value,priority:document.getElementById('t-priority').value,clientId:cid,col:'todo',due:due||'',dateCreated:today,description:desc,updates:[]};
     tasks.push(nt);sbSaveTask(nt);
   }
   ['t-title','t-desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1699,6 +1764,55 @@ function submitNote(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// REPORTING
+// ═══════════════════════════════════════════════════════════════════
+function renderReporting(){
+  const done=tasks.filter(t=>t.col==='done');
+  const open=tasks.filter(t=>t.col!=='done');
+  const ov=tasks.filter(t=>formatDue(t.due)==='overdue');
+  const rate=tasks.length?Math.round(done.length/tasks.length*100):0;
+  document.getElementById('rep-stats').innerHTML=`
+    <div class="stat"><div class="s-lbl">Total tasks</div><div class="s-val" style="color:var(--blue)">${tasks.length}</div><div class="s-sub">All time</div><div class="s-bar" style="background:var(--blue)"></div></div>
+    <div class="stat"><div class="s-lbl">Completed</div><div class="s-val" style="color:var(--green)">${done.length}</div><div class="s-sub">${rate}% completion rate</div><div class="s-bar" style="background:var(--green)"></div></div>
+    <div class="stat"><div class="s-lbl">Open</div><div class="s-val" style="color:var(--orange)">${open.length}</div><div class="s-sub">In progress or to do</div><div class="s-bar" style="background:var(--orange)"></div></div>
+    <div class="stat"><div class="s-lbl">Overdue</div><div class="s-val" style="color:var(--red)">${ov.length}</div><div class="s-sub">Past due date</div><div class="s-bar" style="background:var(--red)"></div></div>`;
+  document.getElementById('rep-completed').innerHTML=done.length
+    ?done.map(t=>`<div class="t-row" onclick="openTaskDetail(${t.id})">
+        <div class="t-cb done"></div>
+        <div class="t-body">
+          <div class="t-name x">${t.title}</div>
+          <div class="t-meta"><span class="t-cl">${clientName(t)}</span>${avXs(t.assign)}${t.dateCreated?`<span style="font-size:10px;color:var(--subtle);margin-left:4px">Created ${new Date(t.dateCreated).toLocaleDateString('en-ZA',{day:'numeric',month:'short'})}</span>`:''}</div>
+        </div>
+      </div>`).join('')
+    :'<div style="padding:14px 16px;font-size:12px;color:var(--subtle)">No completed tasks yet</div>';
+  const persons=['Connor','Matt','Chantal'];
+  document.getElementById('rep-by-person').innerHTML=persons.map(p=>{
+    const pt=tasks.filter(t=>t.assign===p);
+    const pd=pt.filter(t=>t.col==='done').length;
+    const u=USERS[p];
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="av-xs" style="background:${u.col}">${u.i}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;margin-bottom:4px"><span>${p}</span><span style="color:var(--muted)">${pd}/${pt.length} done</span></div>
+        <div class="rev-bar"><div class="rev-fill" style="width:${pt.length?Math.round(pd/pt.length*100):0}%;background:${u.col}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  const clientRows=clients.map(c=>{
+    const ct=tasks.filter(t=>t.clientId===c.id);
+    return{name:c.name,color:c.color,total:ct.length,done:ct.filter(t=>t.col==='done').length};
+  }).filter(c=>c.total>0).sort((a,b)=>b.total-a.total);
+  document.getElementById('rep-by-client').innerHTML=clientRows.length
+    ?clientRows.map(c=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+        <div style="font-size:12px;font-weight:500;flex:1">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap">${c.done}/${c.total} done</div>
+        <div style="width:80px"><div class="rev-bar"><div class="rev-fill" style="width:${Math.round(c.done/c.total*100)}%;background:${c.color}"></div></div></div>
+      </div>`).join('')
+    :'<div style="font-size:12px;color:var(--subtle)">No client tasks yet</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // RENDER DISPATCHER
 // ═══════════════════════════════════════════════════════════════════
 function renderPage(pg){
@@ -1706,6 +1820,7 @@ function renderPage(pg){
   else if(pg==='clients')renderClients();
   else if(pg==='pipeline')renderPipeline();
   else if(pg==='tasks')renderKanban();
+  else if(pg==='reporting')renderReporting();
   else if(pg==='calendar')initCalendar();
   else if(pg==='spend'){renderSpend();populateSlipClientSel();}
   else if(pg==='notes')renderNotes();
