@@ -114,7 +114,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 .p-ov{background:var(--orange-l);color:var(--orange)}.p-tod{background:var(--blue-l);color:var(--blue-d)}.p-done{background:var(--green-l);color:var(--green)}
 .stag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;display:inline-block}
 .st-active{background:var(--green-l);color:var(--green-d)}.st-onboard{background:var(--blue-l);color:var(--blue-d)}.st-invoice{background:var(--amber-l);color:var(--amber)}
-.st-free{background:var(--surface2);color:var(--muted)}.st-lead{background:var(--surface2);color:var(--muted)}.st-pitch{background:var(--teal-l);color:var(--teal)}
+.st-free{background:var(--surface2);color:var(--muted)}.st-lead{background:var(--surface2);color:var(--muted)}.st-pitch{background:var(--teal-l);color:var(--teal)}.st-hitlist{background:#FDF2FF;color:#7C3AED}
 .st-proposal{background:var(--amber-l);color:var(--amber)}.st-closing{background:var(--green-l);color:var(--green-d)}
 
 /* TASK ROWS */
@@ -211,7 +211,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 
 /* PIPELINE */
 .pipe-page{padding:18px 22px}
-.pipe-board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.pipe-board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .pb-col{display:flex;flex-direction:column;background:var(--surface);border-radius:var(--rl);border:1px solid var(--border)}
 .pb-head{padding:11px 14px;border-bottom:1px solid var(--border);background:#fff;display:flex;align-items:center;gap:7px;border-radius:var(--rl) var(--rl) 0 0}
 .pb-lbl{font-size:12px;font-weight:600;flex:1}.pb-cnt{background:var(--surface2);color:var(--muted);font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px}
@@ -333,8 +333,8 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
   .page{overflow:visible;height:auto;min-height:auto;flex:none}
   .page.on{display:block}
 
-  /* Topbar — sticky */
-  .topbar{padding:11px 16px 9px;position:sticky;top:0;z-index:400}
+  /* Topbar — sticky, clear status bar */
+  .topbar{padding:calc(env(safe-area-inset-top,0) + 11px) 16px 9px;position:sticky;top:0;z-index:400}
   .topbar h1{font-size:15px}
   .topbar-date{display:none}
   .tb-btns > div:last-child{display:none}
@@ -441,7 +441,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
     border-bottom:1px solid var(--border);
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
-    position:sticky;top:52px;z-index:300;
+    position:sticky;top:calc(env(safe-area-inset-top,0) + 52px);z-index:300;
   }
   .mob-col-tabs::-webkit-scrollbar{display:none}
 }
@@ -518,9 +518,6 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
       <button class="mob-sheet-item" onclick="navigate('calendar');closeMoreSheet()">
         <span class="mob-sheet-ic">◷</span>Calendar
       </button>
-      <button class="mob-sheet-item" onclick="navigate('spend');closeMoreSheet()">
-        <span class="mob-sheet-ic">↑</span>Slips
-      </button>
       <button class="mob-sheet-item" onclick="navigate('notes');closeMoreSheet()">
         <span class="mob-sheet-ic">✎</span>Notes
       </button>
@@ -550,7 +547,6 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
     <button class="ni" data-pg="reporting"><span class="ni-ic">⊟</span>Reports</button>
     <button class="ni" data-pg="calendar"><span class="ni-ic">◷</span>Calendar</button>
     <div class="sb-lbl">Tools</div>
-    <button class="ni" data-pg="spend"><span class="ni-ic">↑</span>Spend &amp; Slips<span class="ni-badge grey" id="badge-spend"></span></button>
     <button class="ni" data-pg="notes"><span class="ni-ic">✎</span>Meeting Notes</button>
     <button class="ni" data-pg="reminders"><span class="ni-ic">◎</span>Reminders</button>
   </nav>
@@ -600,7 +596,8 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
       <!-- Mobile col tabs for pipeline -->
       <div class="mob-col-tabs" id="pipe-col-tabs">
         <div class="mob-col-tabs-inner">
-          <button class="mob-col-tab active" data-pipe-col="lead" onclick="switchPipeCol('lead',this)">New lead</button>
+          <button class="mob-col-tab active" data-pipe-col="hitlist" onclick="switchPipeCol('hitlist',this)">Hitlist</button>
+          <button class="mob-col-tab" data-pipe-col="lead" onclick="switchPipeCol('lead',this)">New lead</button>
           <button class="mob-col-tab" data-pipe-col="pitch" onclick="switchPipeCol('pitch',this)">Pitch</button>
           <button class="mob-col-tab" data-pipe-col="proposal" onclick="switchPipeCol('proposal',this)">Proposal</button>
           <button class="mob-col-tab" data-pipe-col="closing" onclick="switchPipeCol('closing',this)">Closing</button>
@@ -714,27 +711,7 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
 
   <!-- REMINDERS -->
   <div class="page" id="page-reminders">
-    <div class="rem-wrap">
-      <div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:12px">Active reminders</div>
-        <div class="rem-item"><div class="rem-ic" style="background:var(--orange-l)">🔔</div><div><div class="rem-title">Kare Industrial — monthly report due</div><div class="rem-sub">Connor · Due Friday</div></div><div class="rem-time">Fri</div></div>
-        <div class="rem-item"><div class="rem-ic" style="background:var(--blue-l)">📅</div><div><div class="rem-title">Daily digest — all team</div><div class="rem-sub">8am daily</div></div><div class="rem-time">08:00</div></div>
-        <div class="rem-item"><div class="rem-ic" style="background:var(--amber-l)">⏰</div><div><div class="rem-title">Duramaid — 99% closed, follow up</div><div class="rem-sub">Matt</div></div><div class="rem-time">Today</div></div>
-        <div class="rem-item"><div class="rem-ic" style="background:var(--green-l)">✓</div><div><div class="rem-title">Brenaissance — contract to sign</div><div class="rem-sub">Matt</div></div><div class="rem-time">Today</div></div>
-        <div class="rem-item"><div class="rem-ic" style="background:var(--purple-l)">📨</div><div><div class="rem-title">Amacx — pitch to be sent</div><div class="rem-sub">Connor · R12,500</div></div><div class="rem-time">This week</div></div>
-      </div>
-      <div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:12px">Notification settings</div>
-        <div class="card" style="padding:4px 16px">
-          <div class="tog-row"><span>Daily 8am digest (WhatsApp)</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><span>Task due tomorrow</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><span>Overdue task nudge</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><span>Pipeline deal update</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><span>WhatsApp bot active</span><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
-          <div class="tog-row"><span>Mute weekends</span><button class="tog" onclick="this.classList.toggle('on')"></button></div>
-        </div>
-      </div>
-    </div>
+    <div class="pad" id="rem-content"></div>
   </div>
 </main>
 </div>
@@ -775,6 +752,28 @@ body{font-family:var(--font);background:var(--surface);color:var(--text);height:
     <div class="field"><label>Notes</label><textarea id="pr-notes" placeholder="Context on this deal..."></textarea></div>
   </div>
   <div class="mfoot"><button class="btn btn-ghost" onclick="closeModal('prospect')">Cancel</button><button class="btn btn-blue" onclick="submitProspect()">Save prospect</button></div>
+</div></div>
+
+<div class="mbg" id="modal-reminder"><div class="modal">
+  <div class="mh"><span class="mh-title" id="modal-rem-title">New reminder</span><button class="mc" onclick="closeModal('reminder')">✕</button></div>
+  <div class="mbody">
+    <input type="hidden" id="rem-edit-id">
+    <div class="field"><label>Title</label><input type="text" id="rem-title" placeholder="What needs to be remembered?"></div>
+    <div class="field"><label>Note / details</label><textarea id="rem-note" placeholder="Add context, what action is needed, any relevant info..."></textarea></div>
+    <div class="frow">
+      <div class="field"><label>Priority</label><select id="rem-priority"><option value="High">High</option><option value="Med">Medium</option><option value="Low">Low</option></select></div>
+      <div class="field"><label>Assigned to</label><select id="rem-assign"><option>Connor</option><option>Matt</option><option>Chantal</option><option>All team</option></select></div>
+    </div>
+    <div class="frow">
+      <div class="field"><label>Client (optional)</label><select id="rem-client"></select></div>
+      <div class="field"><label>Timing</label><input type="text" id="rem-due" placeholder="e.g. Friday, This week"></div>
+    </div>
+  </div>
+  <div class="mfoot">
+    <button class="btn btn-red btn-sm" id="rem-del-btn" onclick="deleteReminderItem()" style="margin-right:auto;display:none">Delete</button>
+    <button class="btn btn-ghost" onclick="closeModal('reminder')">Cancel</button>
+    <button class="btn btn-blue" onclick="submitReminder()">Save reminder</button>
+  </div>
 </div></div>
 
 <div class="mbg" id="modal-note"><div class="modal">
@@ -896,6 +895,15 @@ let notes = [
 let nextNoteId = 5;
 let activeNote = 1;
 
+let reminders = [
+  {id:1, clientId:1,   title:"Kare Industrial — monthly report due",    note:"Include social media metrics, content performance and Q3 recommendations. Send to client by COB Friday.", priority:"High",  assign:"Connor",   due:"Friday"},
+  {id:2, clientId:null,title:"Duramaid — contract follow-up",            note:"99% closed. R12,500/mo. Matt to follow up if not signed by end of week.",                                 priority:"High",  assign:"Matt",     due:"Today"},
+  {id:3, clientId:null,title:"Brenaissance — waiting on signature",      note:"Contract sent. R12,500/mo. Chase if no response by EOD.",                                                  priority:"High",  assign:"Matt",     due:"Today"},
+  {id:4, clientId:null,title:"Amacx — prepare and send pitch",           note:"Connor to prepare pitch deck. Client interested at R12,500/mo.",                                           priority:"Med",   assign:"Connor",   due:"This week"},
+  {id:5, clientId:2,   title:"Saddle Inn — social content check-in",     note:"Follow up on last month's performance and confirm next month's content direction.",                        priority:"Low",   assign:"Chantal",  due:"Next week"},
+];
+let nextReminderId = 6;
+
 let slips = [];
 let nextSlipId = 1;
 let pendingSlip = null;
@@ -903,12 +911,13 @@ let activeClientId = null;
 let viewingTaskId = null;
 
 const PIPE_STAGES = [
-  {key:"lead",    label:"New lead",     color:"#9CA3AF"},
-  {key:"pitch",   label:"Pitch to send",color:"#0D9488"},
-  {key:"proposal",label:"Proposal sent",color:"#B45309"},
-  {key:"closing", label:"Closing",      color:"#16A34A"},
+  {key:"hitlist",  label:"Hitlist",      color:"#7C3AED"},
+  {key:"lead",     label:"New lead",     color:"#9CA3AF"},
+  {key:"pitch",    label:"Pitch to send",color:"#0D9488"},
+  {key:"proposal", label:"Proposal sent",color:"#B45309"},
+  {key:"closing",  label:"Closing",      color:"#16A34A"},
 ];
-const PIPE_FLOW = ["lead","pitch","proposal","closing"];
+const PIPE_FLOW = ["hitlist","lead","pitch","proposal","closing"];
 
 // ═══════════════════════════════════════════════════════════════════
 // SUPABASE LOAD ON STARTUP
@@ -916,8 +925,8 @@ const PIPE_FLOW = ["lead","pitch","proposal","closing"];
 async function loadFromSupabase() {
   setSyncing();
   try {
-    const [dbClients, dbProspects, dbTasks, dbNotes] = await Promise.all([
-      sb.getAll('clients'), sb.getAll('prospects'), sb.getAll('tasks'), sb.getAll('notes')
+    const [dbClients, dbProspects, dbTasks, dbNotes, dbReminders] = await Promise.all([
+      sb.getAll('clients'), sb.getAll('prospects'), sb.getAll('tasks'), sb.getAll('notes'), sb.getAll('reminders')
     ]);
     if (dbClients && dbClients.length > 0) {
       clients = dbClients.map(c => ({...c, updates: c.updates || []}));
@@ -935,6 +944,10 @@ async function loadFromSupabase() {
       notes = dbNotes.map(n => ({...n, actions: n.actions || []}));
       nextNoteId = Math.max(...notes.map(n => n.id)) + 1;
       activeNote = notes[0]?.id || 1;
+    }
+    if (dbReminders && dbReminders.length > 0) {
+      reminders = dbReminders.map(r => ({...r, clientId: r.client_id ?? r.clientId ?? null}));
+      nextReminderId = Math.max(...reminders.map(r => r.id)) + 1;
     }
     setSynced();
     toast('Data loaded from Supabase', 'success');
@@ -992,6 +1005,18 @@ async function sbSaveNote(n) {
 }
 async function sbDeleteNote(id) { setSyncing(); const r = await sb.delete('notes', id); r ? setSynced() : setSyncError(); }
 
+async function sbSaveReminder(r) {
+  setSyncing();
+  const res = await sb.insert('reminders', {id:r.id,title:r.title,note:r.note||'',priority:r.priority,assign:r.assign,client_id:r.clientId||null,due:r.due||''});
+  res ? setSynced() : setSyncError();
+}
+async function sbUpdateReminder(r) {
+  setSyncing();
+  const res = await sb.update('reminders', r.id, {title:r.title,note:r.note||'',priority:r.priority,assign:r.assign,client_id:r.clientId||null,due:r.due||''});
+  res ? setSynced() : setSyncError();
+}
+async function sbDeleteReminder(id) { setSyncing(); const res = await sb.delete('reminders', id); res ? setSynced() : setSyncError(); }
+
 // ═══════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════
@@ -999,8 +1024,8 @@ const ini = n => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()
 const fmtR = r => r===0 ? 'Free' : 'R'+r.toLocaleString('en-ZA');
 const avXs = a => {const u=USERS[a]; return u?`<div class="av-xs" style="background:${u.col}">${u.i}</div>`:'';}
 const clientName = t => { if(!t.clientId) return ''; const c=clients.find(c=>c.id===t.clientId); return c?c.name:''; }
-const stageCSS = s => ({active:'st-active',onboard:'st-onboard',invoice:'st-invoice',free:'st-free',lead:'st-lead',pitch:'st-pitch',proposal:'st-proposal',closing:'st-closing'}[s]||'st-lead');
-const stageLbl = s => ({active:'Active',onboard:'Onboarding',invoice:'Invoicing',free:'Free',lead:'New lead',pitch:'Pitch',proposal:'Proposal',closing:'Closing'}[s]||s);
+const stageCSS = s => ({active:'st-active',onboard:'st-onboard',invoice:'st-invoice',free:'st-free',hitlist:'st-hitlist',lead:'st-lead',pitch:'st-pitch',proposal:'st-proposal',closing:'st-closing'}[s]||'st-lead');
+const stageLbl = s => ({active:'Active',onboard:'Onboarding',invoice:'Invoicing',free:'Free',hitlist:'Hitlist',lead:'New lead',pitch:'Pitch',proposal:'Proposal',closing:'Closing'}[s]||s);
 function formatDue(d){
   if(!d||d==='done') return d||'';
   if(d==='overdue') return 'overdue';
@@ -1036,7 +1061,8 @@ const PG_BTNS={
   tasks:`<button class="btn btn-blue" onclick="openModal('task')">+ New task</button>`,
   reporting:'',calendar:'',spend:'',
   notes:`<button class="btn btn-blue" onclick="openModal('note')">+ New note</button>`,
-  reminders:'',whatsapp:'',supabase:'',
+  reminders:`<button class="btn btn-blue" onclick="openModal('reminder')">+ New reminder</button>`,
+  whatsapp:'',supabase:'',
 };
 let curPage = 'dashboard';
 let prevPage = 'dashboard';
@@ -1416,8 +1442,10 @@ function openEditProspect(id){
 // TASKS KANBAN
 // ═══════════════════════════════════════════════════════════════════
 let taskFilter = 'all';
+let showAllDone = false;
 function setTaskFilter(who, btn){
   taskFilter = who;
+  showAllDone = false;
   document.querySelectorAll('#page-tasks .sdf-btn').forEach(b=>b.classList.remove('on'));
   if(btn) btn.classList.add('on');
   renderKanban();
@@ -1425,9 +1453,12 @@ function setTaskFilter(who, btn){
 function renderKanban(){
   const cols=[{key:'todo',label:'To do',dot:'var(--subtle)'},{key:'progress',label:'In progress',dot:'var(--blue)'},{key:'done',label:'Done',dot:'var(--green)'}];
   document.getElementById('kanban').innerHTML=cols.map(col=>{
-    const cards=tasks.filter(t=>t.col===col.key&&(taskFilter==='all'||t.assign===taskFilter));
+    const allCards=tasks.filter(t=>t.col===col.key&&(taskFilter==='all'||t.assign===taskFilter));
+    const isDone=col.key==='done';
+    const cards=isDone&&!showAllDone?allCards.slice(0,20):allCards;
+    const hasMore=isDone&&!showAllDone&&allCards.length>20;
     return `<div class="kb-col" data-col="${col.key}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="dropTask(event,'${col.key}')">
-      <div class="kb-head"><div class="dot" style="background:${col.dot}"></div><div class="kb-title">${col.label}</div><span class="kb-cnt">${cards.length}</span><button class="kb-plus" onclick="openModal('task')">+</button></div>
+      <div class="kb-head"><div class="dot" style="background:${col.dot}"></div><div class="kb-title">${col.label}</div><span class="kb-cnt">${allCards.length}</span><button class="kb-plus" onclick="openModal('task')">+</button></div>
       <div class="kb-cards">${cards.map(t=>{
         const prev=t.col==='progress'?'todo':t.col==='done'?'progress':null;
         const next=t.col==='todo'?'progress':t.col==='progress'?'done':null;
@@ -1441,7 +1472,7 @@ function renderKanban(){
             ${next?`<button class="mv-btn" onclick="moveTask(${t.id},'${next}')">${next==='done'?'Done ✓':'In progress'} →</button>`:''}
           </div>
         </div>`;
-      }).join('')}</div></div>`;
+      }).join('')}${hasMore?`<div style="padding:8px 7px"><button class="btn btn-ghost btn-sm" style="width:100%;font-size:11px" onclick="showAllDone=true;renderKanban()">View all ${allCards.length} completed →</button></div>`:''}</div></div>`;
   }).join('');
   updateBadges();
   // On mobile: keep whichever col tab is active visible
@@ -1505,7 +1536,7 @@ function renderSpend(){
     <div class="stat"><div class="s-lbl">This month</div><div class="s-val" style="color:var(--blue)">${slips.length}</div><div class="s-sub">Ready to export</div><div class="s-bar" style="background:var(--blue)"></div></div>
     <div class="stat"><div class="s-lbl">Top category</div><div class="s-val" style="color:var(--purple);font-size:15px">${top?top[0]:'—'}</div><div class="s-sub">${top?'R'+top[1].toLocaleString('en-ZA'):'No slips yet'}</div><div class="s-bar" style="background:var(--purple)"></div></div>
     <div class="stat"><div class="s-lbl">Need amount</div><div class="s-val" style="color:var(--amber)">${slips.filter(s=>!s.amount).length}</div><div class="s-sub">Missing value</div><div class="s-bar" style="background:var(--amber)"></div></div>`;
-  document.getElementById('badge-spend').textContent=slips.length||'';
+  const bsp=document.getElementById('badge-spend');if(bsp)bsp.textContent=slips.length||'';
   renderSlips();
 }
 function renderSlips(){
@@ -1640,17 +1671,30 @@ CREATE TABLE IF NOT EXISTS notes (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS reminders (
+  id BIGINT PRIMARY KEY,
+  title TEXT NOT NULL,
+  note TEXT,
+  priority TEXT DEFAULT 'Med',
+  assign TEXT,
+  client_id BIGINT REFERENCES clients(id) ON DELETE SET NULL,
+  due TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Row Level Security (optional but recommended)
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prospects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 
 -- Allow all operations for anon key (adjust for production)
 CREATE POLICY "Allow all" ON clients FOR ALL USING (true);
 CREATE POLICY "Allow all" ON prospects FOR ALL USING (true);
 CREATE POLICY "Allow all" ON tasks FOR ALL USING (true);
-CREATE POLICY "Allow all" ON notes FOR ALL USING (true);</div>
+CREATE POLICY "Allow all" ON notes FOR ALL USING (true);
+CREATE POLICY "Allow all" ON reminders FOR ALL USING (true);</div>
       <div style="display:flex;gap:10px;margin-top:14px">
         <button class="btn btn-blue" onclick="loadFromSupabase()">⟳ Load data from Supabase</button>
         <button class="btn btn-ghost" onclick="pushLocalToSupabase()">↑ Push local data to Supabase</button>
@@ -1673,6 +1717,7 @@ async function pushLocalToSupabase(){
   for(const p of prospects) await sbSaveProspect(p);
   for(const t of tasks) await sbSaveTask(t);
   for(const n of notes) await sbSaveNote(n);
+  for(const r of reminders) await sbSaveReminder(r);
   setSynced();
   toast('All data pushed to Supabase ✓','success');
 }
@@ -1688,6 +1733,13 @@ function openModal(name){
     document.getElementById('modal-task-title').textContent='New task';
   }
   if(name==='note'){document.getElementById('n-client').innerHTML=`<option value="Internal">Internal</option>`+clients.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');}
+  if(name==='reminder'){
+    document.getElementById('rem-edit-id').value='';
+    document.getElementById('modal-rem-title').textContent='New reminder';
+    document.getElementById('rem-del-btn').style.display='none';
+    ['rem-title','rem-note','rem-due'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('rem-client').innerHTML=`<option value="">No client</option>`+clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
   if(name==='client'){document.getElementById('c-edit-id').value='';document.getElementById('modal-cl-title').textContent='Add client';document.getElementById('c-del-btn').style.display='none';['c-name','c-ind','c-notes','c-goal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const r=document.getElementById('c-rev');if(r)r.value='';}
   if(name==='slip')populateSlipClientSel();
   document.getElementById('modal-'+name).classList.add('open');
@@ -1813,17 +1865,94 @@ function renderReporting(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// REMINDERS
+// ═══════════════════════════════════════════════════════════════════
+function renderReminders(){
+  const PRI={
+    High:{bg:'var(--red-l)',   text:'var(--red)',   border:'rgba(220,38,38,.15)',   icon:'🔴', label:'High priority'},
+    Med: {bg:'var(--amber-l)', text:'var(--amber)', border:'rgba(180,83,9,.15)',    icon:'🟡', label:'Medium priority'},
+    Low: {bg:'var(--green-l)', text:'var(--green)', border:'rgba(22,163,74,.15)',   icon:'🟢', label:'Low priority'},
+  };
+  const high=reminders.filter(r=>r.priority==='High');
+  const med=reminders.filter(r=>r.priority==='Med');
+  const low=reminders.filter(r=>r.priority==='Low');
+  const stats=`
+    <div class="stats" style="margin-bottom:20px">
+      <div class="stat"><div class="s-lbl">Total reminders</div><div class="s-val" style="color:var(--blue)">${reminders.length}</div><div class="s-sub">Across all priorities</div><div class="s-bar" style="background:var(--blue)"></div></div>
+      <div class="stat"><div class="s-lbl">High priority</div><div class="s-val" style="color:var(--red)">${high.length}</div><div class="s-sub">Needs attention now</div><div class="s-bar" style="background:var(--red)"></div></div>
+      <div class="stat"><div class="s-lbl">Medium priority</div><div class="s-val" style="color:var(--amber)">${med.length}</div><div class="s-sub">This week</div><div class="s-bar" style="background:var(--amber)"></div></div>
+      <div class="stat"><div class="s-lbl">Low priority</div><div class="s-val" style="color:var(--green)">${low.length}</div><div class="s-sub">On the radar</div><div class="s-bar" style="background:var(--green)"></div></div>
+    </div>`;
+  function renderGroup(items, p){
+    if(!items.length) return '';
+    const pc=PRI[p];
+    return `<div style="margin-bottom:22px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${pc.text};margin-bottom:10px;display:flex;align-items:center;gap:6px">${pc.icon} ${pc.label} · ${items.length}</div>
+      ${items.map(r=>{
+        const c=r.clientId?clients.find(c=>c.id===r.clientId):null;
+        const u=USERS[r.assign]||null;
+        return `<div class="rem-item" style="cursor:pointer;border-left:3px solid ${pc.text};background:#fff" onclick="openEditReminder(${r.id})">
+          <div class="rem-ic" style="background:${pc.bg}">${pc.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="rem-title">${r.title}</div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap">
+              ${u?`<div class="av-xs" style="background:${u.col}">${u.i}</div>`:''}
+              <span class="rem-sub" style="margin:0">${r.assign}${c?` · <span style="color:var(--blue)">${c.name}</span>`:''}</span>
+            </div>
+            ${r.note?`<div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;border-top:1px solid var(--border);padding-top:6px">${r.note}</div>`:''}
+          </div>
+          <div class="rem-time" style="color:${pc.text};font-weight:600">${r.due||''}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  const body=renderGroup(high,'High')+renderGroup(med,'Med')+renderGroup(low,'Low');
+  document.getElementById('rem-content').innerHTML=stats+(body||'<div style="text-align:center;padding:40px;color:var(--subtle);font-size:13px">No reminders yet — add your first one</div>');
+}
+
+function openEditReminder(id){
+  const r=reminders.find(r=>r.id===id);if(!r)return;
+  document.getElementById('rem-edit-id').value=id;
+  document.getElementById('modal-rem-title').textContent='Edit reminder';
+  document.getElementById('rem-del-btn').style.display='inline-flex';
+  document.getElementById('rem-title').value=r.title;
+  document.getElementById('rem-note').value=r.note||'';
+  document.getElementById('rem-priority').value=r.priority;
+  document.getElementById('rem-assign').value=r.assign;
+  document.getElementById('rem-due').value=r.due||'';
+  document.getElementById('rem-client').innerHTML=`<option value="">No client</option>`+clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  setTimeout(()=>{document.getElementById('rem-client').value=r.clientId||'';},20);
+  document.getElementById('modal-reminder').classList.add('open');
+}
+
+function submitReminder(){
+  const title=document.getElementById('rem-title').value.trim();if(!title){alert('Please enter a reminder title');return;}
+  const eid=parseInt(document.getElementById('rem-edit-id').value)||null;
+  const data={title,note:document.getElementById('rem-note').value.trim(),priority:document.getElementById('rem-priority').value,assign:document.getElementById('rem-assign').value,clientId:parseInt(document.getElementById('rem-client').value)||null,due:document.getElementById('rem-due').value.trim()};
+  if(eid){const r=reminders.find(r=>r.id===eid);if(r){Object.assign(r,data);sbUpdateReminder(r);}}
+  else{data.id=nextReminderId++;reminders.push(data);sbSaveReminder(data);}
+  closeModal('reminder');toast('Reminder saved ✓','success');renderReminders();
+}
+
+function deleteReminderItem(){
+  const eid=parseInt(document.getElementById('rem-edit-id').value)||null;if(!eid)return;
+  const r=reminders.find(r=>r.id===eid);if(!r||!confirm(`Delete "${r.title}"? Cannot be undone.`))return;
+  reminders=reminders.filter(r=>r.id!==eid);sbDeleteReminder(eid);closeModal('reminder');toast('Reminder deleted');renderReminders();
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // RENDER DISPATCHER
 // ═══════════════════════════════════════════════════════════════════
 function renderPage(pg){
   if(pg==='dashboard')renderDashboard();
   else if(pg==='clients')renderClients();
   else if(pg==='pipeline')renderPipeline();
-  else if(pg==='tasks')renderKanban();
+  else if(pg==='tasks'){showAllDone=false;renderKanban();}
   else if(pg==='reporting')renderReporting();
   else if(pg==='calendar')initCalendar();
   else if(pg==='spend'){renderSpend();populateSlipClientSel();}
   else if(pg==='notes')renderNotes();
+  else if(pg==='reminders')renderReminders();
   else if(pg==='supabase')renderSupabase();
 }
 
